@@ -1,0 +1,82 @@
+# ===========================================================
+# Titanic Survival Prediction — Machine Learning Project
+# ===========================================================
+
+#  Author: Bachar
+#  Description:
+# This notebook trains a model on the Titanic dataset (from Kaggle)
+# to predict the probability that a passenger survived.
+# Steps include data loading, cleaning, feature engineering,
+# model training, evaluation, and prediction function.
+
+# -----------------------
+# 1. Import Libraries
+# -----------------------
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.preprocessing import LabelEncoder
+
+# -----------------------
+# 2. Load Titanic Dataset
+# -----------------------
+# Download from Kaggle: https://www.kaggle.com/c/titanic/data
+# (Place train.csv in the same folder as this notebook)
+titanic = pd.read_csv("Titanic-Dataset.csv")
+
+print(" Dataset loaded successfully!")
+display(titanic.head())
+
+# -----------------------
+# 3. Data Exploration
+# -----------------------
+print("Dataset info:")
+titanic.info()
+print("\nMissing values per column:")
+print(titanic.isnull().sum())
+
+# -----------------------
+# 4. Data Cleaning
+# -----------------------
+titanic = titanic.drop(["PassengerId", "Name", "Ticket", "Cabin"], axis=1)
+titanic["Age"].fillna(titanic["Age"].median(), inplace=True)
+titanic["Embarked"].fillna(titanic["Embarked"].mode()[0], inplace=True)
+
+# -----------------------
+# 5. Feature Engineering
+# -----------------------
+label = LabelEncoder()
+titanic["Sex"] = label.fit_transform(titanic["Sex"])   # male=1, female=0
+titanic["Embarked"] = label.fit_transform(titanic["Embarked"])
+titanic["FamilySize"] = titanic["SibSp"] + titanic["Parch"] + 1
+
+# -----------------------
+# 6. Split Data
+# -----------------------
+X = titanic.drop("Survived", axis=1)
+y = titanic["Survived"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+print(f"Train samples: {len(X_train)} | Test samples: {len(X_test)}")
+
+# -----------------------
+# 7. Train Model
+# -----------------------
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+print(" Model trained successfully!")
+
+# -----------------------
+# 8. Evaluate Model
+# -----------------------
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"\n Accuracy: {accuracy:.3f}")
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
